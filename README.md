@@ -15,9 +15,11 @@ public/                 Готовый сайт, который публикуе
   launch.html           Launch
   flow.html             Capital Flow
   docs.html             Documentation
-  site.js               Интерактивность, wallet connector и карточки
-  site.css              Собранный production CSS
+  site.js               Сгенерированная browser-версия JavaScript
+  site.css              Сгенерированный production CSS
+src/scripts/site.js     Исходник интерактивности и wallet connector
 src/styles/input.css    Исходник Tailwind CSS
+scripts/build.mjs       Копирование JS source в public output
 tailwind.config.js      Цвета и пути Tailwind
 vercel.json             Build, output, clean URLs и headers
 ```

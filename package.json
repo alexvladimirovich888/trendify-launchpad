@@ -5,8 +5,8 @@
   "type": "module",
   "description": "Trendify community token launchpad for TikTok creators",
   "scripts": {
-    "build": "tailwindcss -i ./src/styles/input.css -o ./public/site.css --minify",
-    "dev": "serve public"
+    "build": "tailwindcss -i ./src/styles/input.css -o ./public/site.css --minify && node ./scripts/build.mjs",
+    "dev": "npm run build && serve public"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

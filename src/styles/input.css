@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @source "../../public/*.html";
-@source "../../public/site.js";
+@source "../scripts/*.js";
 
 @theme static {
   --color-primary: #f00f75;
