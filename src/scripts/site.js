@@ -525,6 +525,12 @@ const topTikTokCreators = [
   { name: "Selena Gomez", handle: "selenagomez", ticker: "SELENA", followers: "58.6M", avatar: "selena-gomez.jpg" },
 ];
 
+const launchedTokens = [
+  { name: "ANSEM", handle: "ansem", ticker: "ANSEM", artwork: "assets/tokens/ansem.webp" },
+  { name: "The Duve", handle: "jackduvaltrades", ticker: "DUVE", artwork: "assets/tokens/the-duve.webp" },
+  { name: "kubilemeimei", handle: "kubilemeimei", ticker: "KUBILE", artwork: "assets/tokens/kubilemeimei.jpg" },
+];
+
 function initializeTopTikTokCreators() {
   const grid = document.querySelector(".explore-token-grid");
   const template = grid?.querySelector(".token-card");
@@ -602,6 +608,307 @@ function initializeTopTikTokCreators() {
 }
 
 initializeTopTikTokCreators();
+
+function configureLaunchedTokenCard(card, token) {
+  const profileUrl = `https://www.tiktok.com/@${token.handle}`;
+  card.classList.remove("trendify-added-creator");
+  card.classList.add("trendify-launched-token");
+  card.removeAttribute("data-creator-rank");
+
+  for (const link of card.querySelectorAll("a")) {
+    link.href = profileUrl;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.removeAttribute("data-discover");
+  }
+
+  const artLink = card.querySelector(".token-art-link");
+  if (artLink) artLink.setAttribute("aria-label", `View ${token.name} on TikTok`);
+
+  const artwork = card.querySelector(".token-card-art .token-image");
+  if (artwork) {
+    artwork.src = token.artwork;
+    artwork.alt = `${token.name} artwork`;
+    artwork.loading = "eager";
+    artwork.dataset.imageState = "loaded";
+  }
+
+  const recipient = card.querySelector(".token-recipient-pill");
+  const recipientName = recipient?.querySelector(":scope > span:last-child");
+  const recipientAvatar = recipient?.querySelector(".avatar");
+  if (recipientName) recipientName.textContent = token.name;
+  if (recipientAvatar) {
+    recipientAvatar.src = token.artwork;
+    recipientAvatar.alt = `${token.name} portrait`;
+    recipientAvatar.dataset.imageState = "loaded";
+  }
+
+  const title = card.querySelector(".token-card-title");
+  const titleName = title?.querySelector("h3");
+  const titleTicker = title?.querySelector("span");
+  if (titleName) titleName.textContent = token.name;
+  if (titleTicker) titleTicker.textContent = token.ticker;
+
+  card.querySelectorAll(".token-card-figures strong").forEach((value) => {
+    value.textContent = "$0";
+  });
+  card.querySelectorAll(".token-card-figures > span").forEach((group) => {
+    group.title = "Just launched · No market activity yet.";
+  });
+
+  const statusLines = card.querySelectorAll(".token-funding-wait");
+  if (statusLines[0]) statusLines[0].textContent = "Just launched · No market activity yet.";
+  if (statusLines[1]) statusLines[1].textContent = "Unclaimed fees (est.): $0.00";
+
+  const contract = card.querySelector(".token-contract");
+  const contractText = contract?.querySelector("span");
+  if (contract) contract.setAttribute("aria-label", `${token.name} token pending contract`);
+  if (contractText) contractText.textContent = "Pending";
+}
+
+function initializeLaunchedTokenCards() {
+  document.querySelectorAll(".token-grid").forEach((grid) => {
+    const originalCards = [...grid.querySelectorAll(":scope > .token-card:not(.trendify-added-creator)")];
+    if (!originalCards.length || grid.querySelector(".trendify-launched-token")) return;
+    const template = originalCards.find((card) => /ANSEM/i.test(card.textContent)) || originalCards[0];
+    originalCards.forEach((card) => card.remove());
+
+    const fragment = document.createDocumentFragment();
+    launchedTokens.forEach((token) => {
+      const card = template.cloneNode(true);
+      configureLaunchedTokenCard(card, token);
+      fragment.append(card);
+    });
+    grid.prepend(fragment);
+  });
+
+  const count = document.querySelector(".results-count");
+  if (count) count.textContent = "Showing 23 of 23";
+}
+
+function initializeLaunchedSpotlight() {
+  const strip = document.querySelector(".trending-strip");
+  const template = strip?.querySelector(".trending-token");
+  if (!strip || !template || strip.querySelector(".trendify-launched-spotlight")) return;
+  strip.replaceChildren();
+
+  launchedTokens.forEach((token) => {
+    const item = template.cloneNode(true);
+    item.classList.add("trendify-launched-spotlight");
+    item.href = `https://www.tiktok.com/@${token.handle}`;
+    item.target = "_blank";
+    item.rel = "noreferrer";
+    item.removeAttribute("data-discover");
+    const image = item.querySelector("img");
+    if (image) {
+      image.src = token.artwork;
+      image.alt = `${token.name} artwork`;
+      image.dataset.imageState = "loaded";
+    }
+    const name = item.querySelector("strong");
+    const ticker = item.querySelector("small");
+    if (name) name.textContent = token.name;
+    if (ticker) ticker.textContent = token.ticker;
+    const amount = item.querySelector("span strong");
+    if (amount) amount.textContent = "$0";
+    strip.append(item);
+  });
+}
+
+function initializeLaunchedTokenWall() {
+  document.querySelectorAll(".token-wall-run").forEach((run) => {
+    const template = run.querySelector(".mini-token");
+    if (!template) return;
+    run.replaceChildren();
+    const group = document.createElement("div");
+    group.className = "token-wall-group";
+
+    launchedTokens.forEach((token) => {
+      const item = template.cloneNode(true);
+      const images = item.querySelectorAll("img.token-image");
+      images.forEach((image) => {
+        image.src = token.artwork;
+        image.alt = image.classList.contains("avatar") ? `${token.name} portrait` : `${token.name} artwork`;
+        image.dataset.imageState = "loaded";
+      });
+      const creatorLabel = item.querySelector(".mini-token-art span");
+      if (creatorLabel) creatorLabel.lastChild.nodeValue = token.name;
+      const name = item.querySelector(".mini-token-info strong");
+      const metric = item.querySelector(".mini-token-info span");
+      if (name) name.textContent = token.name;
+      if (metric) metric.innerHTML = '$0 <small>MC</small>';
+      group.append(item);
+    });
+    run.append(group);
+  });
+}
+
+function configureProgressRow(row, token) {
+  row.classList.add("trendify-launched-progress");
+  row.setAttribute("aria-label", `${token.name} creator support progress`);
+  const profileUrl = `https://www.tiktok.com/@${token.handle}`;
+  const tokenLink = row.querySelector(".tdp-token");
+  const tokenImage = row.querySelector(".token-art");
+  const tokenName = tokenLink?.querySelector("strong");
+  const tokenTicker = tokenLink?.querySelector("span span, :scope > span > span");
+  if (tokenLink) tokenLink.href = profileUrl;
+  if (tokenImage) {
+    tokenImage.src = token.artwork;
+    tokenImage.alt = `${token.name} artwork`;
+    tokenImage.dataset.imageState = "loaded";
+  }
+  if (tokenName) tokenName.textContent = token.name;
+  if (tokenTicker) tokenTicker.textContent = `$${token.ticker}`;
+
+  const recipient = row.querySelector(".dr-recipient");
+  const portrait = recipient?.querySelector(".dr-photo");
+  const username = recipient?.querySelector(".dr-username");
+  if (recipient) recipient.href = profileUrl;
+  if (portrait) {
+    portrait.src = token.artwork;
+    portrait.alt = `${token.name} portrait`;
+  }
+  if (username) username.textContent = `@${token.handle}`;
+
+  row.querySelectorAll(".tdp-metrics dd").forEach((value) => { value.textContent = "$0.00"; });
+  const unclaimed = row.querySelector(".tdp-note strong");
+  if (unclaimed) unclaimed.textContent = "$0.00";
+  const note = row.querySelector(".tdp-note");
+  if (note) note.innerHTML = '<span>Unclaimed fees (est.): <strong>$0.00</strong></span>';
+  const status = row.querySelector(".tdp-payout-status");
+  if (status) status.textContent = "Just launched";
+}
+
+function initializeLaunchedProgress() {
+  const list = document.querySelector(".tdp-list");
+  const rows = list ? [...list.querySelectorAll(":scope > .tdp-row")] : [];
+  if (!list || !rows.length || list.querySelector(".trendify-launched-progress")) return;
+  const template = rows.find((row) => /ANSEM/i.test(row.textContent)) || rows[0];
+  list.replaceChildren();
+  launchedTokens.forEach((token) => {
+    const row = template.cloneNode(true);
+    configureProgressRow(row, token);
+    list.append(row);
+  });
+}
+
+function createEmptyState(message) {
+  const empty = document.createElement("p");
+  empty.className = "trendify-empty-state";
+  empty.textContent = message;
+  return empty;
+}
+
+function resetHomeHistory() {
+  const heroPayment = document.querySelector(".hero-payment");
+  if (heroPayment) {
+    heroPayment.removeAttribute("href");
+    heroPayment.innerHTML = "<strong>$0</strong><span>new tokens launched on Trendify</span>";
+  }
+
+  const recentList = document.querySelector(".home-recent .home-payment-list");
+  if (recentList) recentList.replaceChildren(createEmptyState("No creator support activity yet."));
+
+  document.querySelectorAll(".preview-stats strong, .preview-treasury strong").forEach((value) => {
+    value.textContent = "$0";
+  });
+  const supportNote = document.querySelector(".hero-support-note");
+  if (supportNote) supportNote.textContent = "Funding begins after launch and the first market activity.";
+
+  const previewRecipients = document.querySelector(".preview-launch .preview-recipients");
+  const previewTemplate = previewRecipients?.querySelector(".preview-recipient");
+  if (previewRecipients && previewTemplate) {
+    previewRecipients.replaceChildren();
+    launchedTokens.forEach((token) => {
+      const recipient = previewTemplate.cloneNode(true);
+      recipient.href = `https://www.tiktok.com/@${token.handle}`;
+      recipient.target = "_blank";
+      recipient.rel = "noreferrer";
+      const images = recipient.querySelectorAll("img.token-image");
+      images.forEach((image) => {
+        image.src = token.artwork;
+        image.alt = `${token.name} portrait`;
+      });
+      const text = recipient.querySelectorAll("span");
+      if (text[0]) text[0].textContent = token.name;
+      if (text[1]) text[1].textContent = `@${token.handle}`;
+      previewRecipients.append(recipient);
+    });
+  }
+
+  document.querySelectorAll(".streamer-list").forEach((list) => {
+    const template = list.querySelector(".streamer-profile-card");
+    if (!template) return;
+    list.replaceChildren();
+    launchedTokens.forEach((token) => {
+      const card = template.cloneNode(true);
+      card.href = `https://www.tiktok.com/@${token.handle}`;
+      card.target = "_blank";
+      card.rel = "noreferrer";
+      card.removeAttribute("data-discover");
+      const portrait = card.querySelector(".avatar");
+      if (portrait) {
+        portrait.src = token.artwork;
+        portrait.alt = `${token.name} portrait`;
+        portrait.dataset.imageState = "loaded";
+      }
+      const name = card.querySelector(".streamer-profile-top strong");
+      const handle = card.querySelector(".streamer-profile-top small");
+      const stats = card.querySelectorAll(".streamer-profile-stats strong");
+      if (name) name.textContent = token.name;
+      if (handle) handle.textContent = `@${token.handle}`;
+      if (stats[0]) stats[0].textContent = "1";
+      if (stats[1]) stats[1].textContent = "$0.00";
+      list.append(card);
+    });
+  });
+}
+
+function resetSupportHistory() {
+  document.querySelectorAll(".tv-overview strong").forEach((value) => {
+    value.textContent = "$0";
+  });
+  document.querySelectorAll(".tv-overview small").forEach((detail) => {
+    detail.textContent = "No completed activity yet";
+  });
+
+  document.querySelectorAll(".tv-confirmed").forEach((section) => {
+    const lists = section.querySelectorAll(".tv-confirmed-list");
+    lists.forEach((list) => list.replaceChildren(createEmptyState("No confirmed creator support yet.")));
+    section.querySelectorAll(".tv-public-summary strong").forEach((value) => { value.textContent = "$0"; });
+    section.querySelectorAll(".tv-public-summary span").forEach((detail) => { detail.textContent = "No records"; });
+  });
+
+  const ledger = document.querySelector(".tv-ledger");
+  const paymentList = ledger?.querySelector(".tv-payment-list");
+  if (paymentList) paymentList.replaceChildren(createEmptyState("No token activity yet."));
+  ledger?.querySelector(".tv-pagination")?.remove();
+
+  const givingList = document.querySelector(".tv-giving-list");
+  if (givingList) {
+    givingList.replaceChildren();
+    launchedTokens.forEach((token) => {
+      const link = document.createElement("a");
+      link.className = "trendify-token-summary";
+      link.href = `https://www.tiktok.com/@${token.handle}`;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.innerHTML = `
+        <img class="token-image token-art" src="${token.artwork}" alt="${token.name} artwork">
+        <span><strong>${token.name}</strong><small>$${token.ticker}</small></span>
+        <b>$0</b>
+      `;
+      givingList.append(link);
+    });
+  }
+}
+
+initializeLaunchedTokenCards();
+initializeLaunchedSpotlight();
+initializeLaunchedTokenWall();
+initializeLaunchedProgress();
+resetHomeHistory();
+resetSupportHistory();
 
 const navigation = document.createElement("nav");
 navigation.className = "static-mobile-nav";

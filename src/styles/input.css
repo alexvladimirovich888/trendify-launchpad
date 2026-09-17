@@ -213,6 +213,46 @@
     white-space: nowrap;
   }
 
+  .trendify-empty-state {
+    margin: 0;
+    padding: 22px;
+    border: 1px dashed var(--dono-line);
+    border-radius: 8px;
+    color: var(--dono-text-2);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .trendify-token-summary {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .trendify-token-summary .token-art {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .trendify-token-summary > span {
+    display: grid;
+    min-width: 0;
+  }
+
+  .trendify-token-summary small {
+    color: var(--dono-text-2);
+  }
+
+  .trendify-token-summary b {
+    color: var(--color-primary);
+  }
+
   .wallet-modal[hidden] {
     display: none;
   }
