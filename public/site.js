@@ -240,7 +240,15 @@ function initializeWalletConnector() {
       return { publicKey: provider.publicKey };
     }
     if (typeof provider.connect === "function") {
-      return provider.connect();
+      try {
+        return await provider.connect();
+      } catch (error) {
+        const fallbackCodes = new Set([-32603, -32601, -32000]);
+        if (typeof provider.request !== "function" || !fallbackCodes.has(Number(error?.code))) {
+          throw error;
+        }
+        return provider.request({ method: "connect" });
+      }
     }
     return provider.request({ method: "connect" });
   }
@@ -351,6 +359,10 @@ function initializeWalletConnector() {
         ? "Connection request rejected in Phantom."
         : error?.code === -32002 || errorText.includes("already") || errorText.includes("pending")
           ? "A Phantom connection request is already open. Check the extension popup."
+          : error?.code === -32603
+            ? "Phantom internal error. In Phantom open Settings → Connected Apps, remove this site, reload the page, and connect again."
+            : error?.code === 4100
+              ? "Trendify is not authorized in Phantom. Remove this site from Connected Apps, reload, and approve access again."
           : error?.code === "IFRAME"
             ? "Open Trendify in a normal browser tab. Phantom cannot connect inside an embedded preview."
             : errorText.includes("locked")
