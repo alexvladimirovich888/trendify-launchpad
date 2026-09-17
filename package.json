@@ -1,0 +1,19 @@
+{
+  "name": "trendify-launchpad",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Trendify community token launchpad for TikTok creators",
+  "scripts": {
+    "build": "tailwindcss -i ./src/styles/input.css -o ./public/site.css --minify",
+    "dev": "serve public"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "serve": "^14.2.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
