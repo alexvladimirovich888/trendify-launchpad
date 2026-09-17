@@ -202,17 +202,6 @@
     color: #25f4ee;
   }
 
-  .trendify-added-creator .token-card-art > .token-art-link > .token-image {
-    object-position: center top;
-  }
-
-  .trendify-added-creator .token-contract span {
-    max-width: 12ch;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .trendify-empty-state {
     margin: 0;
     padding: 22px;
