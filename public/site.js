@@ -221,7 +221,28 @@ function initializeWalletConnector() {
   }
 
   function getPhantom() {
-    return window.phantom?.solana || (window.solana?.isPhantom ? window.solana : null);
+    const candidates = [window.phantom?.solana, window.solana];
+    return candidates.find((provider) => provider?.isPhantom && (
+      typeof provider.connect === "function" || typeof provider.request === "function"
+    )) || null;
+  }
+
+  function getPhantomAddress(response, provider) {
+    const publicKey = response?.publicKey || provider?.publicKey;
+    if (!publicKey) return "";
+    if (typeof publicKey.toBase58 === "function") return publicKey.toBase58();
+    if (typeof publicKey.toString === "function") return publicKey.toString();
+    return String(publicKey);
+  }
+
+  async function requestPhantomConnection(provider) {
+    if (provider.isConnected && provider.publicKey) {
+      return { publicKey: provider.publicKey };
+    }
+    if (typeof provider.connect === "function") {
+      return provider.connect();
+    }
+    return provider.request({ method: "connect" });
   }
 
   function refreshAvailability() {
@@ -314,20 +335,30 @@ function initializeWalletConnector() {
       return;
     }
     try {
+      if (window.top !== window.self) {
+        throw Object.assign(new Error("Phantom cannot connect inside an embedded browser frame."), { code: "IFRAME" });
+      }
       setStatus("Confirm the request in Phantom…");
-      const response = await provider.connect();
-      const address = response?.publicKey?.toString() || provider.publicKey?.toString();
+      const response = await requestPhantomConnection(provider);
+      const address = getPhantomAddress(response, provider);
       if (!address) throw new Error("No public key returned");
       updateWalletButtons("Phantom", address);
       setStatus("Phantom connected.", "success");
       window.setTimeout(closeModal, 500);
     } catch (error) {
-      setStatus(
-        error?.code === 4001
-          ? "Connection request rejected."
-          : "Could not connect Phantom. Check that the extension is unlocked and allowed on this site.",
-        "error",
-      );
+      const errorText = String(error?.message || "").toLowerCase();
+      const message = error?.code === 4001
+        ? "Connection request rejected in Phantom."
+        : error?.code === -32002 || errorText.includes("already") || errorText.includes("pending")
+          ? "A Phantom connection request is already open. Check the extension popup."
+          : error?.code === "IFRAME"
+            ? "Open Trendify in a normal browser tab. Phantom cannot connect inside an embedded preview."
+            : errorText.includes("locked")
+              ? "Unlock Phantom, then try again."
+              : errorText.includes("public key")
+                ? "Phantom connected without returning an account. Unlock the wallet and select an account."
+                : `Could not connect Phantom${error?.code ? ` (error ${error.code})` : ""}. Unlock the extension, allow this site, and try again.`;
+      setStatus(message, "error");
     }
   }
 
@@ -356,7 +387,9 @@ function initializeWalletConnector() {
     if (accounts?.[0]) updateWalletButtons("MetaMask", accounts[0]);
   }).catch(() => {});
   const phantom = getPhantom();
-  if (phantom?.isConnected && phantom.publicKey) updateWalletButtons("Phantom", phantom.publicKey.toString());
+  if (phantom?.isConnected && phantom.publicKey) {
+    updateWalletButtons("Phantom", getPhantomAddress(null, phantom));
+  }
   window.dispatchEvent(new Event("eip6963:requestProvider"));
   refreshAvailability();
 }
