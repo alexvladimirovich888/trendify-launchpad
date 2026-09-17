@@ -503,10 +503,26 @@ initializeLaunchForm();
 initializeWalletConnector();
 
 const launchedTokens = [
-  { name: "ANSEM", handle: "ansem", ticker: "ANSEM", artwork: "assets/tokens/ansem.webp" },
-  { name: "The Duve", handle: "jackduvaltrades", ticker: "DUVE", artwork: "assets/tokens/the-duve.webp" },
-  { name: "kubilemeimei", handle: "kubilemeimei", ticker: "KUBILE", artwork: "assets/tokens/kubilemeimei.jpg" },
+  { name: "ANSEM", handle: "ansem", ticker: "ANSEM", artwork: "assets/tokens/ansem.webp", pumpUrl: "https://pump.fun/coin/GEjG7BQRAMKVTdTwvuQf94ykmBYDjPusbdMHF4CWQFPN" },
+  { name: "The Duve", handle: "jackduvaltrades", ticker: "DUVE", artwork: "assets/tokens/the-duve.webp", pumpUrl: "https://pump.fun/coin/6cPXWRQB3eFR5L1YywZMchQUQbffEiaay11n842b3crW" },
+  { name: "kubilemeimei", handle: "kubilemeimei", ticker: "KUBILE", artwork: "assets/tokens/kubilemeimei.jpg", pumpUrl: "https://pump.fun/board" },
 ];
+
+function createTokenSocialLinks(token) {
+  const links = document.createElement("div");
+  links.className = "token-social-links";
+  links.innerHTML = `
+    <a href="https://www.tiktok.com/@${token.handle}" target="_blank" rel="noreferrer" aria-label="${token.name} on TikTok" title="TikTok @${token.handle}">
+      <img src="assets/tiktok-logo.png" alt="" aria-hidden="true">
+      <span>TikTok</span>
+    </a>
+    <a href="${token.pumpUrl}" target="_blank" rel="noreferrer" aria-label="${token.name} on Pump.fun" title="Open Pump.fun">
+      <img src="assets/pump.png" alt="" aria-hidden="true">
+      <span>Pump.fun</span>
+    </a>
+  `;
+  return links;
+}
 
 function configureLaunchedTokenCard(card, token) {
   const profileUrl = `https://www.tiktok.com/@${token.handle}`;
@@ -558,7 +574,11 @@ function configureLaunchedTokenCard(card, token) {
   if (statusLines[0]) statusLines[0].textContent = "Just launched · No market activity yet.";
   if (statusLines[1]) statusLines[1].textContent = "Unclaimed fees (est.): $0.00";
 
+  card.querySelector(".token-social-links")?.remove();
+  const cardInfo = card.querySelector(".token-card-info");
   const contract = card.querySelector(".token-contract");
+  if (cardInfo) cardInfo.insertBefore(createTokenSocialLinks(token), contract || null);
+
   const contractText = contract?.querySelector("span");
   if (contract) contract.setAttribute("aria-label", `${token.name} token pending contract`);
   if (contractText) contractText.textContent = "Pending";
@@ -675,6 +695,9 @@ function configureProgressRow(row, token) {
   if (note) note.innerHTML = '<span>Unclaimed fees (est.): <strong>$0.00</strong></span>';
   const status = row.querySelector(".tdp-payout-status");
   if (status) status.textContent = "Just launched";
+  row.querySelector(".token-social-links")?.remove();
+  const funds = row.querySelector(".tdp-funds");
+  if (funds) funds.append(createTokenSocialLinks(token));
 }
 
 function initializeLaunchedProgress() {
