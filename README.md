@@ -16,8 +16,10 @@ public/                 Готовый сайт, который публикуе
   flow.html             Capital Flow
   docs.html             Documentation
   site.js               Сгенерированная browser-версия JavaScript
+  base.css              Локальный базовый layout CSS
   site.css              Сгенерированный production CSS
 src/scripts/site.js     Исходник интерактивности и wallet connector
+src/styles/base.css     Исходник базового layout CSS
 src/styles/input.css    Исходник Tailwind CSS
 scripts/build.mjs       Копирование JS source в public output
 tailwind.config.js      Цвета и пути Tailwind
